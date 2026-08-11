@@ -1,9 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import dynamic from "next/dynamic";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { computeOverviewStats, groupByClient, isPhoneProblematic } from "@/lib/health";
 import { OverviewBar } from "@/components/OverviewBar";
@@ -12,14 +9,9 @@ import { AttentionBlock } from "@/components/AttentionBlock";
 import { ClientSection } from "@/components/ClientSection";
 import { AlertsFeed } from "@/components/AlertsFeed";
 import { NumberDetailModal } from "@/components/NumberDetailModal";
-import { LogoutButton } from "@/components/LogoutButton";
-import { Activity, Loader2, RefreshCw } from "lucide-react";
+import { NavHeader } from "@/components/NavHeader";
+import { Loader2 } from "lucide-react";
 import type { PhoneHealthRow } from "@/types/database";
-
-const ThemeToggle = dynamic(
-  () => import("@/components/ThemeToggle").then((m) => m.ThemeToggle),
-  { ssr: false }
-);
 
 export function DashboardShell({ userEmail }: { userEmail: string }) {
   const { phones, alerts, critical24hCount, loading, error, lastUpdated, refresh } =
@@ -59,42 +51,12 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-10 border-b border-border/70 bg-card/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm shadow-primary/30">
-              <Activity className="size-4" />
-            </div>
-            <div>
-              <h1 className="text-base leading-tight font-semibold tracking-tight sm:text-lg">
-                Painel de Saúde de BMs
-              </h1>
-              <p className="text-xs text-muted-foreground">{userEmail}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex">
-              {loading && lastUpdated === null ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <button
-                  onClick={() => refresh()}
-                  className="flex items-center gap-1.5 rounded-md px-2 py-1 hover:bg-muted hover:text-foreground"
-                  title="Atualizar agora"
-                >
-                  <RefreshCw className="size-3.5" />
-                  {lastUpdated
-                    ? `Atualizado ${formatDistanceToNow(lastUpdated, { addSuffix: true, locale: ptBR })}`
-                    : "—"}
-                </button>
-              )}
-            </div>
-            <ThemeToggle />
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
+      <NavHeader
+        userEmail={userEmail}
+        loading={loading}
+        lastUpdated={lastUpdated}
+        onRefresh={() => refresh()}
+      />
 
       <main className="mx-auto w-full max-w-7xl flex-1 space-y-7 px-4 py-6 sm:px-6">
         {error && (

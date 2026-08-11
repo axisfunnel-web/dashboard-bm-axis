@@ -1,16 +1,23 @@
-# Painel de Saúde de BMs (WhatsApp) — Axis
+# Painel Axis — BMs & WhatsApp
 
 Dashboard interno, **somente leitura**, para monitorar a saúde dos números de
-WhatsApp Business distribuídos nas Business Managers dos clientes. Os dados
-vêm de um Postgres no Supabase (view `public.v_phone_health` e tabela
-`public.health_events`).
+WhatsApp Business distribuídos nas Business Managers dos clientes, além dos
+padrões de disparo e dos erros de envio. Os dados vêm de um Postgres no
+Supabase: view `public.v_phone_health` e tabelas `public.health_events`,
+`public.messaging_stats` e `public.message_events`.
+
+Três telas, todas organizadas por cliente:
+
+- **Saúde** — qualidade/status dos números, alertas e tendência de qualidade.
+- **Disparos** — volume enviado/entregue e taxa de entrega por cliente e por dia.
+- **Erros** — ranking de erros por código, falhas por cliente e feed de falhas recentes.
 
 ## Stack
 
 - Next.js 16 (App Router, TypeScript)
 - Tailwind CSS v4 + shadcn/ui
 - `@supabase/supabase-js` + `@supabase/ssr` (autenticação com cookies)
-- Recharts (gráfico de tendência de qualidade)
+- Recharts (gráficos de tendência de qualidade e de disparos)
 
 ## Pré-requisitos
 
@@ -62,27 +69,47 @@ mesmas variáveis de ambiente no provedor.
 ```
 src/
   app/
-    login/          # tela de login (Supabase Auth)
-    page.tsx         # dashboard (protegido por middleware + guarda server-side)
+    login/            # tela de login (Supabase Auth)
+    page.tsx           # tela Saúde (protegida por middleware + guarda server-side)
+    disparos/page.tsx  # tela Disparos
+    erros/page.tsx     # tela Erros
   components/
-    OverviewBar.tsx        # cards de resumo (totais, qualidade, problemas, críticos 24h)
-    Filters.tsx             # busca + filtros de qualidade/status
-    AttentionBlock.tsx      # destaque geral de números RED/RESTRICTED
-    ClientSection.tsx       # agrupamento por cliente
-    NumberCard.tsx           # card de um número
-    NumberDetailModal.tsx    # detalhe: info, tendência de qualidade, timeline
-    QualityTrendChart.tsx    # gráfico de tendência (Recharts)
-    AlertsFeed.tsx           # feed de eventos warning/critical
-    health-badges.tsx        # badges de qualidade/status/severidade
-    DashboardShell.tsx       # orquestra dados, filtros e layout
+    NavHeader.tsx           # cabeçalho + navegação entre Saúde/Disparos/Erros
+    OverviewBar.tsx          # cards de resumo (totais, qualidade, problemas, críticos 24h)
+    Filters.tsx               # busca + filtros de qualidade/status (tela Saúde)
+    AttentionBlock.tsx        # destaque geral de números RED/RESTRICTED
+    ClientSection.tsx         # agrupamento por cliente (tela Saúde)
+    NumberCard.tsx             # card de um número
+    NumberDetailModal.tsx      # detalhe: info, tendência de qualidade, timeline
+    QualityTrendChart.tsx      # gráfico de tendência de qualidade (Recharts)
+    AlertsFeed.tsx             # feed de eventos warning/critical
+    health-badges.tsx          # badges de qualidade/status/severidade
+    DashboardShell.tsx         # orquestra a tela Saúde
+    PeriodSelector.tsx         # seletor de período (7/30 dias), usado em Disparos e Erros
+    DispatchScreen.tsx         # orquestra a tela Disparos
+    dispatch/
+      DispatchSummaryCards.tsx # totais enviados/entregues/taxa de entrega
+      DispatchTrendChart.tsx   # enviados vs. entregues por dia (Recharts)
+      ClientDispatchList.tsx   # lista por cliente, expansível por número
+    ErrorsScreen.tsx           # orquestra a tela Erros
+    errors/
+      ErrorFilters.tsx         # período + filtros de cliente/número/código
+      ErrorRankingTable.tsx    # ranking de erros por código
+      ErrorsByClientList.tsx   # falhas por cliente
+      FailuresFeed.tsx         # últimas mensagens com erro (recipient_masked)
+      DeliveryBreakdown.tsx    # proporção sent/delivered/read/failed no período
   hooks/
-    useDashboardData.ts      # polling da view + eventos a cada ~25s
+    useDashboardData.ts      # polling da view + eventos a cada ~25s (Saúde)
     usePhoneEvents.ts        # histórico de eventos de um número (sob demanda)
+    useDispatchData.ts       # polling de messaging_stats a cada ~25s (Disparos)
+    useErrorsData.ts         # polling de message_events (falhas) a cada ~25s (Erros)
   lib/
     supabase/                # clients (browser, server, middleware)
-    health.ts                 # regras de cor/ordenação/agrupamento
-    format.ts                 # datas relativas em pt-BR
-  types/database.ts           # tipos das linhas de v_phone_health e health_events
+    health.ts                 # regras de cor/ordenação/agrupamento (Saúde)
+    dispatch.ts                # agregação por cliente/dia + junção via meta_phone_number_id
+    errors.ts                  # ranking de erros e contagem por cliente
+    format.ts                  # datas relativas em pt-BR
+  types/database.ts           # tipos de v_phone_health, health_events, messaging_stats, message_events
 middleware.ts                 # protege todas as rotas exceto /login
 ```
 
@@ -90,4 +117,8 @@ middleware.ts                 # protege todas as rotas exceto /login
 
 - Somente leitura: nenhuma operação de insert/update/delete é feita.
 - RLS ativo no Supabase — a leitura só funciona com um usuário autenticado.
-- Atualização automática a cada ~25s; o cabeçalho mostra "atualizado há X".
+- Atualização automática a cada ~25s em todas as telas; o cabeçalho mostra "atualizado há X".
+- `messaging_stats` e `message_events` usam o `phone_number_id` da Meta — a
+  junção com clientes é feita no app via `v_phone_health.meta_phone_number_id`.
+- A tela Erros nunca exibe o número de destinatário completo, apenas
+  `recipient_masked`.

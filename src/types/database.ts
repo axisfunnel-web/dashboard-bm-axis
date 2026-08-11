@@ -6,9 +6,13 @@ export type EventSeverity = "info" | "warning" | "critical";
 
 export type EventSource = "webhook" | "poll";
 
+export type MessageStatus = "sent" | "delivered" | "read" | "failed";
+
 /** One row per WhatsApp number, from public.v_phone_health */
 export interface PhoneHealthRow {
   phone_id: string;
+  /** Meta's phone_number_id — links to messaging_stats / message_events */
+  meta_phone_number_id: string;
   display_number: string;
   verified_name: string | null;
   quality_rating: QualityRating;
@@ -46,5 +50,31 @@ export interface HealthEventRow {
   source: EventSource;
   severity: EventSeverity;
   payload: HealthEventPayload | null;
+  created_at: string;
+}
+
+/** One row per phone per day, from public.messaging_stats */
+export interface MessagingStatsRow {
+  phone_number_id: string;
+  waba_id: string | null;
+  stat_date: string;
+  sent: number;
+  delivered: number;
+  captured_at: string;
+}
+
+/** One row per message status event, from public.message_events */
+export interface MessageEventRow {
+  id: string;
+  wamid: string | null;
+  phone_number_id: string;
+  waba_id: string | null;
+  status: MessageStatus;
+  error_code: number | null;
+  error_title: string | null;
+  error_details: string | null;
+  recipient_masked: string | null;
+  conversation_category: string | null;
+  event_ts: string;
   created_at: string;
 }
