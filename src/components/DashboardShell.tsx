@@ -2,13 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { useDashboardData } from "@/hooks/useDashboardData";
-import { computeOverviewStats, groupByClient, isPhoneProblematic } from "@/lib/health";
+import { computeOverviewStats, groupByClient, isPhoneProblematic, type ClientGroup } from "@/lib/health";
 import { OverviewBar } from "@/components/OverviewBar";
 import { Filters, type QualityFilter, type StatusFilter } from "@/components/Filters";
 import { AttentionBlock } from "@/components/AttentionBlock";
 import { ClientSection } from "@/components/ClientSection";
 import { AlertsFeed } from "@/components/AlertsFeed";
 import { NumberDetailModal } from "@/components/NumberDetailModal";
+import { ClientDispatchLogModal } from "@/components/ClientDispatchLogModal";
 import { NavHeader } from "@/components/NavHeader";
 import { Loader2 } from "lucide-react";
 import type { PhoneHealthRow } from "@/types/database";
@@ -21,6 +22,7 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
   const [quality, setQuality] = useState<QualityFilter>("ALL");
   const [status, setStatus] = useState<StatusFilter>("ALL");
   const [selectedPhone, setSelectedPhone] = useState<PhoneHealthRow | null>(null);
+  const [dispatchLogClient, setDispatchLogClient] = useState<ClientGroup | null>(null);
 
   const phonesById = useMemo(() => {
     const map = new Map<string, PhoneHealthRow>();
@@ -84,10 +86,7 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
               </div>
             ) : (
               <>
-                <AttentionBlock
-                  phones={attentionPhones}
-                  onSelectPhone={setSelectedPhone}
-                />
+                <AttentionBlock phones={attentionPhones} onSelectPhone={setSelectedPhone} />
 
                 {clientGroups.length === 0 ? (
                   <p className="py-12 text-center text-sm text-muted-foreground">
@@ -99,6 +98,7 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
                       key={group.client_id}
                       group={group}
                       onSelectPhone={setSelectedPhone}
+                      onOpenDispatchLog={setDispatchLogClient}
                     />
                   ))
                 )}
@@ -115,6 +115,11 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
       <NumberDetailModal
         phone={selectedPhone}
         onOpenChange={(open) => !open && setSelectedPhone(null)}
+      />
+
+      <ClientDispatchLogModal
+        group={dispatchLogClient}
+        onOpenChange={(open) => !open && setDispatchLogClient(null)}
       />
     </div>
   );

@@ -7,7 +7,8 @@ import {
   severityRole,
   statusRole,
 } from "@/lib/health";
-import type { EventSeverity, PhoneStatus, QualityRating } from "@/types/database";
+import { MESSAGE_STATUS_LABELS, isSuccessEvent } from "@/lib/messageEvents";
+import type { EventSeverity, MessageEventRow, PhoneStatus, QualityRating } from "@/types/database";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -81,6 +82,14 @@ export function SeverityBadge({ severity }: { severity: EventSeverity }) {
       {SEVERITY_LABELS[severity]}
     </span>
   );
+}
+
+export function MessageStatusBadge({ event }: { event: MessageEventRow }) {
+  const success = isSuccessEvent(event);
+  const label = success
+    ? MESSAGE_STATUS_LABELS[event.status]
+    : `Erro${event.error_code !== null ? ` ${event.error_code}` : ""}`;
+  return <Pill role={success ? "good" : "critical"} label={label} />;
 }
 
 /** Small colored dot used as a left-accent on cards (color carries no meaning alone — paired with badges) */

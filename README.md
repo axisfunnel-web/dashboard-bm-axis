@@ -9,6 +9,9 @@ Supabase: view `public.v_phone_health` e tabelas `public.health_events`,
 Três telas, todas organizadas por cliente:
 
 - **Saúde** — qualidade/status dos números, alertas e tendência de qualidade.
+  Cada cliente tem um botão **Disparos** ao lado do nome (no cabeçalho do
+  grupo) que abre o log completo de sucesso/erro de todos os números daquele
+  cliente, filtrável por número e por dia, e exportável em `.csv` ou `.xls`.
 - **Disparos** — volume enviado/entregue e taxa de entrega por cliente e por dia.
 - **Erros** — ranking de erros por código, falhas por cliente e feed de falhas recentes.
 
@@ -81,6 +84,7 @@ src/
     ClientSection.tsx         # agrupamento por cliente (tela Saúde)
     NumberCard.tsx             # card de um número
     NumberDetailModal.tsx      # detalhe: info, tendência de qualidade, timeline
+    ClientDispatchLogModal.tsx # log de sucesso/erro de todos os números do cliente, por número/dia, exportável (.csv/.xls)
     QualityTrendChart.tsx      # gráfico de tendência de qualidade (Recharts)
     AlertsFeed.tsx             # feed de eventos warning/critical
     health-badges.tsx          # badges de qualidade/status/severidade
@@ -101,6 +105,7 @@ src/
   hooks/
     useDashboardData.ts      # polling da view + eventos a cada ~25s (Saúde)
     usePhoneEvents.ts        # histórico de eventos de um número (sob demanda)
+    useClientDispatchLogs.ts # log de message_events de todos os números de um cliente (sob demanda)
     useDispatchData.ts       # polling de messaging_stats a cada ~25s (Disparos)
     useErrorsData.ts         # polling de message_events (falhas) a cada ~25s (Erros)
   lib/
@@ -108,6 +113,8 @@ src/
     health.ts                 # regras de cor/ordenação/agrupamento (Saúde)
     dispatch.ts                # agregação por cliente/dia + junção via meta_phone_number_id
     errors.ts                  # ranking de erros e contagem por cliente
+    messageEvents.ts           # labels/agrupamento por dia dos logs de disparo de um cliente
+    export.ts                  # exportação de tabelas para .csv e .xls (sem dependências)
     format.ts                  # datas relativas em pt-BR
   types/database.ts           # tipos de v_phone_health, health_events, messaging_stats, message_events
 middleware.ts                 # protege todas as rotas exceto /login
