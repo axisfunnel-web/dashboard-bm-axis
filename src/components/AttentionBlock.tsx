@@ -1,14 +1,16 @@
 import { NumberCard } from "@/components/NumberCard";
 import { sortPhonesBySeverity } from "@/lib/health";
-import type { PhoneHealthRow } from "@/types/database";
+import type { BmUsageLiveRow, PhoneHealthRow } from "@/types/database";
 import { ShieldAlert } from "lucide-react";
 
 export function AttentionBlock({
   phones,
   onSelectPhone,
+  usageByBmId,
 }: {
   phones: PhoneHealthRow[];
   onSelectPhone: (phone: PhoneHealthRow) => void;
+  usageByBmId?: Map<string, BmUsageLiveRow>;
 }) {
   if (phones.length === 0) return null;
 
@@ -25,7 +27,12 @@ export function AttentionBlock({
       </div>
       <div className="flex flex-col gap-4">
         {sorted.map((phone) => (
-          <NumberCard key={phone.phone_id} phone={phone} onClick={() => onSelectPhone(phone)} />
+          <NumberCard
+            key={phone.phone_id}
+            phone={phone}
+            onClick={() => onSelectPhone(phone)}
+            usage={phone.bm_id ? usageByBmId?.get(phone.bm_id) : undefined}
+          />
         ))}
       </div>
     </section>

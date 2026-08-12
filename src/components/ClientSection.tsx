@@ -1,16 +1,18 @@
 import { NumberCard } from "@/components/NumberCard";
 import { isPhoneProblematic, type ClientGroup } from "@/lib/health";
-import type { PhoneHealthRow } from "@/types/database";
+import type { BmUsageLiveRow, PhoneHealthRow } from "@/types/database";
 import { Send, ShieldAlert } from "lucide-react";
 
 export function ClientSection({
   group,
   onSelectPhone,
   onOpenDispatchLog,
+  usageByBmId,
 }: {
   group: ClientGroup;
   onSelectPhone: (phone: PhoneHealthRow) => void;
   onOpenDispatchLog?: (group: ClientGroup) => void;
+  usageByBmId?: Map<string, BmUsageLiveRow>;
 }) {
   const problemCount = group.phones.filter(isPhoneProblematic).length;
 
@@ -39,7 +41,12 @@ export function ClientSection({
       </div>
       <div className="flex flex-col gap-4">
         {group.phones.map((phone) => (
-          <NumberCard key={phone.phone_id} phone={phone} onClick={() => onSelectPhone(phone)} />
+          <NumberCard
+            key={phone.phone_id}
+            phone={phone}
+            onClick={() => onSelectPhone(phone)}
+            usage={phone.bm_id ? usageByBmId?.get(phone.bm_id) : undefined}
+          />
         ))}
       </div>
     </section>

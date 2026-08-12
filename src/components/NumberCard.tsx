@@ -1,7 +1,14 @@
 import { formatRelative, orNd } from "@/lib/format";
 import { QUALITY_LABELS, STATUS_LABELS, qualityRole, statusRole } from "@/lib/health";
+import {
+  limitBarWidthPercent,
+  limitPercentLabel,
+  limitRole,
+  tierParaNumero,
+  type LimitRole,
+} from "@/lib/limits";
 import { cn } from "@/lib/utils";
-import type { PhoneHealthRow } from "@/types/database";
+import type { BmUsageLiveRow, PhoneHealthRow } from "@/types/database";
 import { CheckCircle2 } from "lucide-react";
 
 type Role = "good" | "warning" | "critical" | "unknown";
@@ -19,6 +26,22 @@ const TEXT_CLASS: Record<Role, string> = {
   critical: "text-status-critical",
   unknown: "text-white/70",
 };
+
+const LIMIT_TEXT_CLASS: Record<LimitRole, string> = {
+  good: "text-status-good",
+  warning: "text-status-warning",
+  critical: "text-status-critical",
+  neutral: "text-white/90",
+};
+
+const LIMIT_BAR_CLASS: Record<LimitRole, string> = {
+  good: "bg-status-good",
+  warning: "bg-status-warning",
+  critical: "bg-status-critical",
+  neutral: "bg-white/25",
+};
+
+const numberFormatter = new Intl.NumberFormat("pt-BR");
 
 function StatItem({
   label,
@@ -41,12 +64,57 @@ function StatItem({
   );
 }
 
+function MessagingLimitStat({
+  messagingLimit,
+  usage,
+}: {
+  messagingLimit: string | null;
+  usage?: BmUsageLiveRow;
+}) {
+  const limit = tierParaNumero(messagingLimit);
+
+  if (limit === null || usage === undefined) {
+    return <StatItem label="Limite de msgs" value={orNd(messagingLimit)} />;
+  }
+
+  const sent = usage.sent_today;
+  const role = limitRole(sent, limit);
+  const percentLabel = limitPercentLabel(sent, limit);
+  const limitLabel = limit === Infinity ? "∞" : numberFormatter.format(limit);
+  const barWidth = limitBarWidthPercent(sent, limit);
+
+  return (
+    <div className="min-w-0">
+      <p className="text-[10px] font-medium tracking-wider text-white/40 uppercase">
+        Limite de msgs (hoje)
+      </p>
+      <p
+        className={cn(
+          "mt-0.5 truncate text-sm font-semibold tabular-nums",
+          LIMIT_TEXT_CLASS[role]
+        )}
+      >
+        {numberFormatter.format(sent)} / {limitLabel}
+        {percentLabel && <span className="font-normal text-white/40"> ({percentLabel})</span>}
+      </p>
+      <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-white/10">
+        <div
+          className={cn("h-full rounded-full", LIMIT_BAR_CLASS[role])}
+          style={{ width: `${barWidth}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function NumberCard({
   phone,
   onClick,
+  usage,
 }: {
   phone: PhoneHealthRow;
   onClick: () => void;
+  usage?: BmUsageLiveRow;
 }) {
   const qRole = qualityRole(phone.quality_rating);
   const sRole = statusRole(phone.status);
@@ -109,7 +177,7 @@ export function NumberCard({
         />
         <StatItem label="Revisão da conta" value={orNd(phone.account_review_status)} />
         <StatItem label="Verificação" value={orNd(phone.business_verification_status)} />
-        <StatItem label="Limite de msgs" value={orNd(phone.messaging_limit)} />
+        <MessagingLimitStat messagingLimit={phone.messaging_limit} usage={usage} />
         <StatItem label="Último evento" value={formatRelative(phone.last_event_at)} />
       </div>
     </div>

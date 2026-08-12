@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { useBmUsageLive } from "@/hooks/useBmUsageLive";
 import { computeOverviewStats, groupByClient, isPhoneProblematic, type ClientGroup } from "@/lib/health";
 import { OverviewBar } from "@/components/OverviewBar";
 import { Filters, type QualityFilter, type StatusFilter } from "@/components/Filters";
@@ -17,6 +18,7 @@ import type { PhoneHealthRow } from "@/types/database";
 export function DashboardShell({ userEmail }: { userEmail: string }) {
   const { phones, alerts, critical24hCount, loading, error, lastUpdated, refresh } =
     useDashboardData();
+  const { rows: usageRows } = useBmUsageLive();
 
   const [search, setSearch] = useState("");
   const [quality, setQuality] = useState<QualityFilter>("ALL");
@@ -50,6 +52,10 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
 
   const clientGroups = useMemo(() => groupByClient(filteredPhones), [filteredPhones]);
   const stats = useMemo(() => computeOverviewStats(phones), [phones]);
+  const usageByBmId = useMemo(
+    () => new Map(usageRows.map((u) => [u.bm_id, u])),
+    [usageRows]
+  );
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -86,7 +92,11 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
               </div>
             ) : (
               <>
-                <AttentionBlock phones={attentionPhones} onSelectPhone={setSelectedPhone} />
+                <AttentionBlock
+                  phones={attentionPhones}
+                  onSelectPhone={setSelectedPhone}
+                  usageByBmId={usageByBmId}
+                />
 
                 {clientGroups.length === 0 ? (
                   <p className="py-12 text-center text-sm text-muted-foreground">
@@ -99,6 +109,7 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
                       group={group}
                       onSelectPhone={setSelectedPhone}
                       onOpenDispatchLog={setDispatchLogClient}
+                      usageByBmId={usageByBmId}
                     />
                   ))
                 )}
