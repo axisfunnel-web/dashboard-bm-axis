@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { href: "/", label: "Saúde" },
   { href: "/disparos", label: "Disparos" },
   { href: "/erros", label: "Erros" },
+  { href: "/limites", label: "Limites" },
 ] as const;
 
 export function NavHeader({

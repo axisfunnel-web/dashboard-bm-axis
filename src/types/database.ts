@@ -63,6 +63,17 @@ export interface MessagingStatsRow {
   captured_at: string;
 }
 
+/** One row per BM, from public.v_bm_usage_today */
+export interface BmUsageTodayRow {
+  bm_id: string;
+  bm_name: string;
+  client_name: string;
+  messaging_limit: string | null;
+  messaging_limit_updated_at: string | null;
+  sent_today: number;
+  delivered_today: number;
+}
+
 /** One row per message status event, from public.message_events */
 export interface MessageEventRow {
   id: string;

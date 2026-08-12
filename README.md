@@ -2,11 +2,12 @@
 
 Dashboard interno, **somente leitura**, para monitorar a saúde dos números de
 WhatsApp Business distribuídos nas Business Managers dos clientes, além dos
-padrões de disparo e dos erros de envio. Os dados vêm de um Postgres no
-Supabase: view `public.v_phone_health` e tabelas `public.health_events`,
+padrões de disparo, dos erros de envio e do teto diário de mensagens por BM.
+Os dados vêm de um Postgres no Supabase: view `public.v_phone_health`,
+`public.v_bm_usage_today` e tabelas `public.health_events`,
 `public.messaging_stats` e `public.message_events`.
 
-Três telas, todas organizadas por cliente:
+Quatro telas, todas organizadas por cliente:
 
 - **Saúde** — qualidade/status dos números, alertas e tendência de qualidade.
   Cada cliente tem um botão **Disparos** ao lado do nome (no cabeçalho do
@@ -17,6 +18,13 @@ Três telas, todas organizadas por cliente:
   mesmo log detalhado de sucesso/erro por mensagem (`message_events`) que
   existe na tela Saúde, com filtro por número/dia e exportação.
 - **Erros** — ranking de erros por código, falhas por cliente e feed de falhas recentes.
+- **Limites** — consumo do teto diário de mensagens por Business Manager
+  (`v_bm_usage_today`), organizado por cliente: "usado / teto" com barra de
+  progresso (verde <70%, âmbar 70–90%, vermelho >90% ou estourado) e "%" do
+  limite consumido hoje. BMs com `messaging_limit` ilimitado mostram "0 / ∞"
+  com barra neutra. Cada card já aceita uma prop `sentOverride` (não
+  conectada ainda) para, no futuro, plugar um contador ao vivo vindo de
+  `message_events` em vez do `sent_today` da view.
 
 ## Stack
 
@@ -79,8 +87,9 @@ src/
     page.tsx           # tela Saúde (protegida por middleware + guarda server-side)
     disparos/page.tsx  # tela Disparos
     erros/page.tsx     # tela Erros
+    limites/page.tsx   # tela Limites
   components/
-    NavHeader.tsx           # cabeçalho + navegação entre Saúde/Disparos/Erros
+    NavHeader.tsx           # cabeçalho + navegação entre Saúde/Disparos/Erros/Limites
     OverviewBar.tsx          # cards de resumo (totais, qualidade, problemas, críticos 24h)
     Filters.tsx               # busca + filtros de qualidade/status (tela Saúde)
     AttentionBlock.tsx        # destaque geral de números RED/RESTRICTED
@@ -106,21 +115,27 @@ src/
       ErrorsByClientList.tsx   # falhas por cliente
       FailuresFeed.tsx         # últimas mensagens com erro (recipient_masked)
       DeliveryBreakdown.tsx    # proporção sent/delivered/read/failed no período
+    LimitsScreen.tsx           # orquestra a tela Limites
+    limits/
+      ClientLimitsSection.tsx  # agrupamento por cliente (tela Limites)
+      BmLimitCard.tsx          # card "usado/teto" com barra de progresso por BM
   hooks/
     useDashboardData.ts      # polling da view + eventos a cada ~25s (Saúde)
     usePhoneEvents.ts        # histórico de eventos de um número (sob demanda)
     useClientDispatchLogs.ts # log de message_events de todos os números de um cliente (sob demanda)
     useDispatchData.ts       # polling de messaging_stats a cada ~25s (Disparos)
     useErrorsData.ts         # polling de message_events (falhas) a cada ~25s (Erros)
+    useBmUsageToday.ts       # polling de v_bm_usage_today a cada ~25s (Limites)
   lib/
     supabase/                # clients (browser, server, middleware)
     health.ts                 # regras de cor/ordenação/agrupamento (Saúde)
     dispatch.ts                # agregação por cliente/dia + junção via meta_phone_number_id
     errors.ts                  # ranking de erros e contagem por cliente
     messageEvents.ts           # labels/agrupamento por dia dos logs de disparo de um cliente
+    limits.ts                  # tierParaNumero + cor/percentual/agrupamento por cliente (Limites)
     export.ts                  # exportação de tabelas para .csv e .xls (sem dependências)
     format.ts                  # datas relativas em pt-BR
-  types/database.ts           # tipos de v_phone_health, health_events, messaging_stats, message_events
+  types/database.ts           # tipos de v_phone_health, v_bm_usage_today, health_events, messaging_stats, message_events
 middleware.ts                 # protege todas as rotas exceto /login
 ```
 
