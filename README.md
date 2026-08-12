@@ -12,7 +12,10 @@ Três telas, todas organizadas por cliente:
   Cada cliente tem um botão **Disparos** ao lado do nome (no cabeçalho do
   grupo) que abre o log completo de sucesso/erro de todos os números daquele
   cliente, filtrável por número e por dia, e exportável em `.csv` ou `.xls`.
-- **Disparos** — volume enviado/entregue e taxa de entrega por cliente e por dia.
+- **Disparos** — volume enviado/entregue e taxa de entrega por cliente e por dia
+  (`messaging_stats`), e uma seção **Logs de disparos por cliente** com o
+  mesmo log detalhado de sucesso/erro por mensagem (`message_events`) que
+  existe na tela Saúde, com filtro por número/dia e exportação.
 - **Erros** — ranking de erros por código, falhas por cliente e feed de falhas recentes.
 
 ## Stack
@@ -94,7 +97,8 @@ src/
     dispatch/
       DispatchSummaryCards.tsx # totais enviados/entregues/taxa de entrega
       DispatchTrendChart.tsx   # enviados vs. entregues por dia (Recharts)
-      ClientDispatchList.tsx   # lista por cliente, expansível por número
+      ClientDispatchList.tsx   # lista por cliente, expansível por número (messaging_stats)
+      ClientLogList.tsx        # lista por cliente que abre o ClientDispatchLogModal (message_events)
     ErrorsScreen.tsx           # orquestra a tela Erros
     errors/
       ErrorFilters.tsx         # período + filtros de cliente/número/código
