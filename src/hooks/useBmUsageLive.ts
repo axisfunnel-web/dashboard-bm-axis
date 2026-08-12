@@ -2,21 +2,21 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { BmUsageTodayRow } from "@/types/database";
+import type { BmUsageLiveRow } from "@/types/database";
 
-const REFRESH_INTERVAL_MS = 25_000;
+const REFRESH_INTERVAL_MS = 15_000;
 
 interface UsageData {
-  rows: BmUsageTodayRow[];
+  rows: BmUsageLiveRow[];
   loading: boolean;
   error: string | null;
   lastUpdated: Date | null;
   refresh: () => void;
 }
 
-export function useBmUsageToday(): UsageData {
+export function useBmUsageLive(): UsageData {
   const supabase = useRef(createClient()).current;
-  const [rows, setRows] = useState<BmUsageTodayRow[]>([]);
+  const [rows, setRows] = useState<BmUsageLiveRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -24,7 +24,7 @@ export function useBmUsageToday(): UsageData {
   const fetchAll = useCallback(async () => {
     try {
       const { data, error } = await supabase
-        .from("v_bm_usage_today")
+        .from("v_bm_usage_live")
         .select("*")
         .order("client_name");
 

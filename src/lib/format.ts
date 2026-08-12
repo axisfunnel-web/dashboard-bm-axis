@@ -22,6 +22,13 @@ export function formatDateTime(dateStr: string | null): string {
   }
 }
 
+/** "agora" for the first ~10s after a fetch, then falls back to the usual relative distance */
+export function formatLiveUpdated(date: Date | null): string {
+  if (!date) return "—";
+  if (Date.now() - date.getTime() < 10_000) return "agora";
+  return formatDistanceToNow(date, { addSuffix: true, locale: ptBR });
+}
+
 export function orNd(value: string | null | undefined): string {
   if (value === null || value === undefined || value === "") return "n/d";
   return value;

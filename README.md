@@ -4,7 +4,7 @@ Dashboard interno, **somente leitura**, para monitorar a saúde dos números de
 WhatsApp Business distribuídos nas Business Managers dos clientes, além dos
 padrões de disparo, dos erros de envio e do teto diário de mensagens por BM.
 Os dados vêm de um Postgres no Supabase: view `public.v_phone_health`,
-`public.v_bm_usage_today` e tabelas `public.health_events`,
+`public.v_bm_usage_live` e tabelas `public.health_events`,
 `public.messaging_stats` e `public.message_events`.
 
 Quatro telas, todas organizadas por cliente:
@@ -18,13 +18,14 @@ Quatro telas, todas organizadas por cliente:
   mesmo log detalhado de sucesso/erro por mensagem (`message_events`) que
   existe na tela Saúde, com filtro por número/dia e exportação.
 - **Erros** — ranking de erros por código, falhas por cliente e feed de falhas recentes.
-- **Limites** — consumo do teto diário de mensagens por Business Manager
-  (`v_bm_usage_today`), organizado por cliente: "usado / teto" com barra de
-  progresso (verde <70%, âmbar 70–90%, vermelho >90% ou estourado) e "%" do
-  limite consumido hoje. BMs com `messaging_limit` ilimitado mostram "0 / ∞"
-  com barra neutra. Cada card já aceita uma prop `sentOverride` (não
-  conectada ainda) para, no futuro, plugar um contador ao vivo vindo de
-  `message_events` em vez do `sent_today` da view.
+- **Limites** — consumo do teto diário de mensagens por Business Manager, ao
+  vivo (`v_bm_usage_live`, contagem em tempo real vinda dos webhooks,
+  atualizada a cada ~15s), organizado por cliente: "usado / teto" com barra de
+  progresso (verde <70%, âmbar 70–90%, vermelho >90% ou estourado), "%" do
+  limite consumido hoje, "X entregues" e um badge de "X falhas" quando houver.
+  BMs com `messaging_limit` ilimitado mostram "0 / ∞" com barra neutra. Cada
+  card já aceita uma prop `sentOverride` (não conectada ainda) para um futuro
+  contador alternativo.
 
 ## Stack
 
@@ -125,7 +126,7 @@ src/
     useClientDispatchLogs.ts # log de message_events de todos os números de um cliente (sob demanda)
     useDispatchData.ts       # polling de messaging_stats a cada ~25s (Disparos)
     useErrorsData.ts         # polling de message_events (falhas) a cada ~25s (Erros)
-    useBmUsageToday.ts       # polling de v_bm_usage_today a cada ~25s (Limites)
+    useBmUsageLive.ts        # polling de v_bm_usage_live a cada ~15s (Limites)
   lib/
     supabase/                # clients (browser, server, middleware)
     health.ts                 # regras de cor/ordenação/agrupamento (Saúde)
@@ -135,7 +136,7 @@ src/
     limits.ts                  # tierParaNumero + cor/percentual/agrupamento por cliente (Limites)
     export.ts                  # exportação de tabelas para .csv e .xls (sem dependências)
     format.ts                  # datas relativas em pt-BR
-  types/database.ts           # tipos de v_phone_health, v_bm_usage_today, health_events, messaging_stats, message_events
+  types/database.ts           # tipos de v_phone_health, v_bm_usage_live, health_events, messaging_stats, message_events
 middleware.ts                 # protege todas as rotas exceto /login
 ```
 

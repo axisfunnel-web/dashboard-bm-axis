@@ -1,4 +1,4 @@
-import type { BmUsageTodayRow } from "@/types/database";
+import type { BmUsageLiveRow } from "@/types/database";
 
 const TIER_MAP: Record<string, number> = {
   TIER_250: 250,
@@ -44,11 +44,11 @@ export function limitBarWidthPercent(sent: number, limit: number | null): number
 
 export interface ClientLimitGroup {
   client_name: string;
-  bms: BmUsageTodayRow[];
+  bms: BmUsageLiveRow[];
 }
 
-export function groupUsageByClient(rows: BmUsageTodayRow[]): ClientLimitGroup[] {
-  const map = new Map<string, BmUsageTodayRow[]>();
+export function groupUsageByClient(rows: BmUsageLiveRow[]): ClientLimitGroup[] {
+  const map = new Map<string, BmUsageLiveRow[]>();
   for (const row of rows) {
     const arr = map.get(row.client_name) ?? [];
     arr.push(row);
