@@ -18,7 +18,7 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-xl tracking-tight">Painel de Saúde de BMs</CardTitle>
           <CardDescription>
-            Acesso interno — entre com seu e-mail e senha.
+            Acesso interno — digite a senha do painel.
           </CardDescription>
         </CardHeader>
         <CardContent>
