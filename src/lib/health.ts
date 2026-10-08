@@ -77,6 +77,26 @@ export function phoneSeverityRank(row: PhoneHealthRow): number {
   return 5; // GREEN + CONNECTED
 }
 
+/** O polling roda de hora em hora; 3h sem evento = o número saiu da atualização. */
+export const STALE_AFTER_MS = 3 * 60 * 60 * 1000;
+
+export function isPhoneStale(row: PhoneHealthRow, now: number = Date.now()): boolean {
+  if (!row.last_event_at) return true;
+  const t = new Date(row.last_event_at).getTime();
+  if (Number.isNaN(t)) return true;
+  return now - t > STALE_AFTER_MS;
+}
+
+export type MonitorRole = "good" | "warning" | "critical" | "unknown";
+
+/** Estado geral de um número no Monitor: o pior entre qualidade, status e atualização. */
+export function monitorRole(row: PhoneHealthRow, stale: boolean): MonitorRole {
+  if (row.status === "RESTRICTED" || row.quality_rating === "RED") return "critical";
+  if (row.status === "FLAGGED" || row.quality_rating === "YELLOW" || stale) return "warning";
+  if (row.quality_rating === "UNKNOWN") return "unknown";
+  return "good";
+}
+
 export function isPhoneProblematic(row: PhoneHealthRow): boolean {
   return (
     row.quality_rating === "RED" ||

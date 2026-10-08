@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { href: "/disparos", label: "Disparos" },
   { href: "/erros", label: "Erros" },
   { href: "/limites", label: "Limites" },
+  { href: "/monitor", label: "Monitor" },
 ] as const;
 
 export function NavHeader({
