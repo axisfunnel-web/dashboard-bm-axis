@@ -62,9 +62,11 @@ Cinco telas, todas organizadas por cliente:
    > Apenas a chave pública (`anon`/`publishable`) é usada — nunca a
    > `service_role`. O app não faz nenhuma escrita no banco.
 
-3. Crie um usuário de acesso no painel do Supabase: **Authentication → Users
-   → Add user**, com e-mail e senha da sua equipe. O login do dashboard usa
-   e-mail + senha (Supabase Auth). Não há autocadastro.
+3. Login **só com senha**: a tela de login pede apenas a senha e entra com um
+   usuário compartilhado do Supabase Auth (`painel@axisfunnel.app`, ou o valor de
+   `NEXT_PUBLIC_DASHBOARD_LOGIN_EMAIL`). Para trocar a senha, altere a senha
+   desse usuário em **Authentication → Users**. O login continua necessário
+   porque o RLS do banco só libera leitura para usuários autenticados.
 
 4. Rode o servidor de desenvolvimento:
 
