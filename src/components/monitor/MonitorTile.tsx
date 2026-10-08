@@ -116,11 +116,15 @@ export function MonitorTile({
       <span className={cn("absolute inset-y-0 left-0 w-1", ACCENT_CLASS[role])} aria-hidden="true" />
 
       <div className="min-w-0">
-        <p className="truncate text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-          {phone.client_name} · {orNd(phone.bm_name)}
+        <p className="truncate text-xl leading-tight font-bold tracking-tight" title={phone.client_name}>
+          {phone.client_name}
         </p>
-        <p className="truncate text-xl font-bold tracking-tight tabular-nums">{phone.display_number}</p>
-        <p className="truncate text-xs text-muted-foreground">{orNd(phone.verified_name)}</p>
+        <p className="mt-0.5 truncate text-sm font-medium tabular-nums text-foreground/80">
+          {phone.display_number}
+        </p>
+        <p className="truncate text-[11px] text-muted-foreground">
+          {orNd(phone.verified_name)} · BM {orNd(phone.bm_name)}
+        </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
