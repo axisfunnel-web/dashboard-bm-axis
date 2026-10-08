@@ -7,7 +7,7 @@ Os dados vêm de um Postgres no Supabase: view `public.v_phone_health`,
 `public.v_bm_usage_live` e tabelas `public.health_events`,
 `public.messaging_stats` e `public.message_events`.
 
-Quatro telas, todas organizadas por cliente:
+Cinco telas, todas organizadas por cliente:
 
 - **Saúde** — qualidade/status dos números, alertas e tendência de qualidade.
   Cada cliente tem um botão **Disparos** ao lado do nome (no cabeçalho do
@@ -26,6 +26,12 @@ Quatro telas, todas organizadas por cliente:
   BMs com `messaging_limit` ilimitado mostram "0 / ∞" com barra neutra. Cada
   card já aceita uma prop `sentOverride` (não conectada ainda) para um futuro
   contador alternativo.
+- **Monitor** — visão compacta para deixar ligada numa tela: resumo no topo
+  (números OK / atenção / críticos / sem atualização, enviadas e falhas do dia)
+  e um bloco por número com qualidade, status, consumo do limite da BM e
+  tempo desde a última atualização. Números sem evento há mais de 3h aparecem
+  como **Sem atualização**. Tem botão de tela cheia e mantém a tela ligada
+  (Wake Lock) onde o navegador suporta.
 
 ## Stack
 
@@ -89,8 +95,9 @@ src/
     disparos/page.tsx  # tela Disparos
     erros/page.tsx     # tela Erros
     limites/page.tsx   # tela Limites
+    monitor/page.tsx   # tela Monitor (visão compacta para TV)
   components/
-    NavHeader.tsx           # cabeçalho + navegação entre Saúde/Disparos/Erros/Limites
+    NavHeader.tsx           # cabeçalho + navegação entre Saúde/Disparos/Erros/Limites/Monitor
     OverviewBar.tsx          # cards de resumo (totais, qualidade, problemas, críticos 24h)
     Filters.tsx               # busca + filtros de qualidade/status (tela Saúde)
     AttentionBlock.tsx        # destaque geral de números RED/RESTRICTED
@@ -116,6 +123,9 @@ src/
       ErrorsByClientList.tsx   # falhas por cliente
       FailuresFeed.tsx         # últimas mensagens com erro (recipient_masked)
       DeliveryBreakdown.tsx    # proporção sent/delivered/read/failed no período
+    MonitorScreen.tsx          # orquestra a tela Monitor (resumo + grade compacta, tela cheia, wake lock)
+    monitor/
+      MonitorTile.tsx          # bloco compacto de um número
     LimitsScreen.tsx           # orquestra a tela Limites
     limits/
       ClientLimitsSection.tsx  # agrupamento por cliente (tela Limites)
